@@ -5,9 +5,32 @@
   </head>
   <body class="container">
     <button id="complimentButton">Get a compliment</button>
+    <button id = "fortuneButton">Get a fabulous fortune!</button>
+    <ul>
+      Goals:
+    </ul>
+    <form id = "goals">
+      <input type="text" placeholder = "add new goal">
+      <input type="submit">
+    </form>
+    <form id = "memoriesRetrieval">
+      Select a date to see all the good you did on that day!
+      <input type="date">
+      <input type="submit">
+    </form>
+    <form id = "memoriesInput">
+      Did you do a good deed today? Enter it in here (make sure each good deed gets its own separate entry):
+      <input type="date">
+      <input type="text" placeholder = '"Today I..."'>
+      <input type="submit">
+    </form>
+    <div id = "memoryDisplay">
+
+    </div>
 
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <script>
+      const memDisplay = document.querySelector('#memoryDisplay')
       document.getElementById("complimentButton").onclick = function () {
         axios.get("http://localhost:4000/api/compliment/")
             .then(function (response) {
@@ -15,6 +38,103 @@
               alert(data);
             });
       };
+      document.querySelector("#fortuneButton").onclick = () => {
+        axios.get("http://localhost:4000/api/fortune/")
+          .then( res => {
+            const fortune = res.data;
+            alert(fortune);
+          });
+      };
+      document.getElementById("goals").onsubmit = (event) => {
+        event.preventDefault();
+        const ng = document.getElementById("goals").firstElementChild.value;
+        document.getElementById("goals").firstElementChild.value = ''
+        // console.log(document.getElementById("goals").firstElementChild.value)
+        const body = { goal: ng }
+        // console.log(body,typeof body)
+        document.getElementById("goals").firstChild.value = '';
+        axios.post("http://localhost:4000/api/goals/", body)
+          .then( res => {
+            let listItems = document.querySelectorAll('.metas')
+            for (let i = 0; i < listItems.length; i++) {
+              listItems[i].remove();
+            }
+            for (item of res.data) {
+              // console.log(res.data)
+              const newGoal = document.createElement('li');
+              newGoal.classList.add('metas')
+              newGoal.id = item.id;
+              newGoal.textContent = item.goal;
+              const cancelButton = document.createElement('button');
+              cancelButton.textContent = "Completed!"
+              cancelButton.onclick = (event) => {
+                console.log('delete button clicked')
+                console.log(event.target.parentNode)
+                axios.delete(`http://localhost:4000/api/goals/${event.target.parentNode.id}`)
+                  .then(res => {
+                    event.target.parentNode.remove()
+                  });
+              };
+              newGoal.appendChild(cancelButton);
+              document.querySelector("ul").appendChild(newGoal)
+            }
+          });
+      }
+      let createMemoryCard = (memObj) => {
+        const memCard = document.createElement('div');
+        const memDate = document.createElement('div');
+        const memory = document.createElement('p');
+        console.log(memObj)
+        memory.textContent = memObj.memory;
+        memDate.textContent = memObj.date;
+        memCard.textContent = `Memory id: ${memObj.id}`
+        memCard.appendChild(memDate);
+        memCard.appendChild(memory);
+        document.querySelector("#memoryDisplay").appendChild(memCard);
+      }
+
+      document.querySelector('#memoriesInput').onsubmit = (event) => {
+        event.preventDefault();
+        const children = []
+        // console.log(event.target.children)
+        for (let i = 0; i < event.target.children.length-1; i++) {
+          // console.log(event.target.children)
+          children.push(event.target.children[i].value);
+        }
+        const body = {
+          date: children[0],
+          memory : children[1]
+        }
+        console.log(body)
+        axios.post('http://localhost:4000/api/memories/', body)
+          .then( res => {
+            for (let i = 0; i < event.target.children.length-1; i++) {
+              event.target.children[i].value = ''
+            }
+            let veces = memDisplay.children.length
+            for (let i = 0; i < veces; i++) {
+              memDisplay.firstElementChild.remove();
+            }
+            createMemoryCard(res.data)
+          });
+      }
+
+      document.querySelector("#memoriesRetrieval").onsubmit = (event) => {
+        event.preventDefault();
+        let date = event.target.firstElementChild.value;
+        event.target.firstElementChild.value = '';
+        axios.get(`http://localhost:4000/api/memories/${date}/`)
+          .then( res => {
+            let veces = memDisplay.children.length
+            for (let i = 0; i < veces; i++) {
+              console.log('memDisplay');
+              memDisplay.lastElementChild.remove();
+            }
+            for (let i = 0; i < res.data.length; i++) {
+              createMemoryCard(res.data[i]);
+            }
+          })
+      }
     </script>
   </body>
 </html>
