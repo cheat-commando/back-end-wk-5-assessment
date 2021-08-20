@@ -84,12 +84,47 @@
         const memCard = document.createElement('div');
         const memDate = document.createElement('div');
         const memory = document.createElement('p');
+        memory.classList.add('memtxt')
+        const editButton = document.createElement('button');
+        editButton.textContent = 'Edit'
         console.log(memObj)
         memory.textContent = memObj.memory;
         memDate.textContent = memObj.date;
         memCard.textContent = `Memory id: ${memObj.id}`
+        memCard.id = memObj.id
         memCard.appendChild(memDate);
         memCard.appendChild(memory);
+        editButton.onclick = (event) => {
+          let editDiv = document.createElement('div')
+          memCard.appendChild(editDiv)
+          let editTextBox = document.createElement('textarea')
+          editTextBox.textContent = event.target.parentNode.querySelector('.memtxt').textContent
+          editDiv.appendChild(editTextBox)
+          let submitEdit = document.createElement('button');
+          submitEdit.textContent = 'Submit edit'
+          submitEdit.onclick = (event) => {
+            let body = {
+              memory : event.target.parentNode.querySelector('textarea').value
+            }
+            console.log(body)
+            axios.put(`http://localhost:4000/api/memories/${event.target.parentNode.parentNode.id}`, body)
+              .then( res => {
+                let veces = memDisplay.children.length
+                for (let i = 0; i < veces; i++) {
+                  memDisplay.firstElementChild.remove();
+                }
+                createMemoryCard(res.data)
+              });
+          };
+          editDiv.appendChild(submitEdit)
+          let cancelEdit = document.createElement('button')
+          cancelEdit.textContent = 'Cancel Edit'
+          cancelEdit.onclick = (event) => {
+            event.target.parentNode.remove();
+          };
+          editDiv.appendChild(cancelEdit)
+        };
+        memCard.appendChild(editButton)
         document.querySelector("#memoryDisplay").appendChild(memCard);
       }
 

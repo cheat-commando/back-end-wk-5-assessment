@@ -74,12 +74,20 @@ app.post('/api/memories', (req, res) => {
   };
   memories.push(newMem)
   nextMemId++
+  console.log(newMem)
   res.status(200).send(newMem)
 });
 
 app.get('/api/memories/:date', (req, res) => {
   const filteredMems = memories.filter(elem => elem.date === req.params.date);
   res.status(200).send(filteredMems);
+})
+
+app.put('/api/memories/:id', (req, res) => {
+  console.log(req.body.memory)
+  const index = memories.findIndex(elem => elem.id === +req.params.id);
+  memories[index].memory = req.body.memory
+  res.status(200).send(memories[index])
 })
 
 app.listen(4000, () => console.log("Server running on 4000"));
