@@ -24,13 +24,29 @@
       <input type="text" placeholder = '"Today I..."'>
       <input type="submit">
     </form>
-    <div id = "memoryDisplay">
-
-    </div>
+    <div id = "memoryDisplay"></div>
+    <aside style = "position:absolute; right: 20rem; top: 0rem">
+      Get a quote of the day!
+      <p id="famousQuote">
+      </p>
+      <button id = "quoteButton">Get a fab quote!</button>
+      <p>Inspirational quote of the day provided by <a href="https://zenquotes.io/" target="_blank">theysaidso.com</a></p>
+    </aside>
 
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <script>
-      const memDisplay = document.querySelector('#memoryDisplay')
+      const quotesText = document.querySelector("#famousQuote");
+      const quoteButton = document.querySelector("#quoteButton");
+
+      quoteButton.addEventListener('click', () => {
+        axios.get('http://quotes.rest/qod?language=en')
+          .then( res => {
+            quotesText.textContent = `"${res.data.contents.quotes[0].quote}"\n\n- ${res.data.contents.quotes[0].author}`
+            quoteButton.remove();
+          })
+      });
+
+      const memDisplay = document.querySelector('#memoryDisplay');
       document.getElementById("complimentButton").onclick = function () {
         axios.get("http://localhost:4000/api/compliment/")
             .then(function (response) {
